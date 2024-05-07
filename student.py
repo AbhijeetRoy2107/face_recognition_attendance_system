@@ -5,6 +5,7 @@ from tkinter.ttk import Combobox
 from tkinter import messagebox
 from PIL import Image,ImageTk
 import mysql.connector
+import cv2
 
 
 class Student_Detail():
@@ -292,7 +293,8 @@ class Student_Detail():
                           width=21,
                           font=("arial", 14, "bold"),
                           bg="blue",
-                          fg="white")
+                          fg="white",
+                          command=self.generate_data)
         take_photo_btn.grid(row=0, column=0, padx=1, pady=3)
 
         # Update Photo Button
@@ -540,6 +542,70 @@ class Student_Detail():
         self.var_email.set(""),
         self.var_dob.set(""),
         self.var_radio_reg.set("")
+
+    #=================generate Image_dataset
+    def generate_data(self):
+        if self.var_dept.get()=="Select Department" or self.var_semester.get()==" Select Semester" or self.var_session.get()=="Select Year":
+            return messagebox.showerror("Field Not Filled", "Please fill all fields before saving",parent=self.root)
+        else:
+            try:
+                conn = mysql.connector.connect(host="localhost", user="root", password="9504",
+                                               database="face_recognition")
+                my_cursor = conn.cursor()
+                my_cursor.execute("select * from student")
+                myreult = my_cursor.fetchall()
+                id = 0
+                for x in myreult:
+                    id += 1
+                my_cursor.execute("update student set Department=%s,Session=%s,Roll=%s,Name=%s,Phone=%s,Semester=%s,Email=%s,DateOfBirth=%s,Radiobtn=%s where Registration=%s",
+                    (
+                        self.var_dept.get(),
+                        self.var_session.get(),
+                        self.var_roll.get(),
+                        self.var_name.get(),
+                        self.var_phone.get(),
+                        self.var_semester.get(),
+                        self.var_email.get(),
+                        self.var_dob.get(),
+                        self.var_radio_reg.get(),
+                        self.var_reg.get() == id + 1
+                    ))
+                conn.commit()
+                self.fetch_data()
+                self.reset_data()
+                conn.close()
+
+                # ==================loading haar-cascade algorithm
+                face_classifier = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+
+                def face_cropped(img):
+                    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                    faces = face_classifier.detectMultiScale(gray, 1.3, 5)
+
+                    for (x, y, w, h) in faces:
+                        face_cropped = img[y:y + h, x:x + w]
+                        return face_cropped
+
+                cap = cv2.VideoCapture(0)
+                img_id = 0
+                while True:
+                    ret, my_frame = cap.read()
+                    if face_cropped(my_frame) is not None:
+                        img_id += 1
+                        face = cv2.resize(face_cropped(my_frame), (450, 450))
+                        face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
+                        file_name_path = "assets/training_images/user." + str(id) + "." + str(img_id) + ".jpg"
+                        cv2.imwrite(file_name_path,face)
+                        cv2.putText(face, str(img_id),(50,50), cv2.FONT_HERSHEY_COMPLEX, 2, (0, 255, 255), 2)
+                        cv2.imshow("Cropped Face", face)
+
+                    if cv2.waitKey(1) == 13 or int(img_id) == 100:
+                        break
+                cap.release()
+                cv2.destroyAllWindows()
+                messagebox.showinfo("Result", "Generating Data_Set Completed")
+            except Exception as es:
+                messagebox.showerror("Error", f"Due To: {str(es)}",parent=self.root)
 
 
 if __name__ == "__main__":
