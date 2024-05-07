@@ -92,7 +92,7 @@ class Student_Detail():
                                      font=("arial", 12),
                                      width=11,
                                      state="readonly")
-        Session_combo["values"] = ("Select Year","2020-24","2021-25", "2022-26", "2023-27")
+        Session_combo["values"] = ("Select Session","2020-24","2021-25", "2022-26", "2023-27")
         Session_combo.current(0)
         Session_combo.grid(row=0, column=3, padx=2, pady=2, sticky=W)
 
@@ -223,17 +223,16 @@ class Student_Detail():
         #Radio Buttons
         self.var_radio_reg = StringVar()
         reg_img_btn = ttk.Radiobutton(radio_btn_frame,
-                                      textvariable=self.var_radio_reg,
+                                      variable=self.var_radio_reg,
                                          text = "Register Images",
-                                         value="Yes",
+                                         value="yes",
                                          width=22)
         reg_img_btn.grid(row=0,column = 0,padx=15,pady=5)
 
-        self.var_radio_reg_null = StringVar()
         null_reg_img_btn = ttk.Radiobutton(radio_btn_frame,
-                                           textvariable=self.var_radio_reg_null,
+                                           variable=self.var_radio_reg,
                                       text="No Register Images",
-                                      value="Yes",
+                                      value="no",
                                       width=22)
         null_reg_img_btn.grid(row=0, column=1,padx=15,pady=5)
         """                 ---Radio Button Frame Ends(Left Label)---                 """
@@ -259,7 +258,8 @@ class Student_Detail():
                           width=21,
                           font=("arial", 14, "bold"),
                           bg="blue",
-                          fg="white")
+                          fg="white",
+                          command=self.update_data)
         update_btn.grid(row=0, column=1, padx=1, pady=3)
 
         # Delete Button
@@ -268,7 +268,8 @@ class Student_Detail():
                           width=21,
                           font=("arial", 14, "bold"),
                           bg="blue",
-                          fg="white")
+                          fg="white",
+                          command=self.delete_data)
         delete_btn.grid(row=1, column=0, padx=1, pady=3)
 
         # Reset Button
@@ -277,7 +278,8 @@ class Student_Detail():
                           width=21,
                           font=("arial", 14, "bold"),
                           bg="blue",
-                          fg="white")
+                          fg="white",
+                          command=self.reset_data)
         reset_btn.grid(row=1, column=1, padx=1, pady=3)
 
         #Button Frame 2
@@ -295,7 +297,7 @@ class Student_Detail():
 
         # Update Photo Button
         update_photo_btn = Button(btn_frame2,
-                                text="Take Photo Sample",
+                                text="Update Photo Sample",
                                 width=21,
                                 font=("arial", 14, "bold"),
                                 bg="blue",
@@ -372,10 +374,10 @@ class Student_Detail():
         scroll_y = ttk.Scrollbar(table_frame, orient=VERTICAL)
 
         self.search_table = ttk.Treeview(table_frame,
-                                         columns=("dept","roll",
-                                                  "reg","student_name",
+                                         columns=("reg","dept","session","roll",
+                                                  "student_name",
                                                   "phone","semester",
-                                                  "email","dob"),
+                                                  "email","dob","sample"),
                                          xscrollcommand=scroll_x.set,
                                          yscrollcommand=scroll_y.set)
         scroll_x.pack(side = BOTTOM, fill=X)
@@ -383,47 +385,161 @@ class Student_Detail():
         scroll_x.config(command=self.search_table.xview)
         scroll_y.config(command=self.search_table.yview)
 
-        self.search_table.heading("dept", text="Department", anchor=CENTER)
-        self.search_table.heading("roll", text="Roll No", anchor=CENTER)
         self.search_table.heading("reg", text="Registration No", anchor=CENTER)
+        self.search_table.heading("dept", text="Department", anchor=CENTER)
+        self.search_table.heading("session", text="Session", anchor=CENTER)
+        self.search_table.heading("roll", text="Roll No", anchor=CENTER)
         self.search_table.heading("student_name", text="Student Name", anchor=CENTER)
         self.search_table.heading("phone", text="Phone No", anchor=CENTER)
         self.search_table.heading("semester", text="Semester", anchor=CENTER)
         self.search_table.heading("email", text="Email", anchor=CENTER)
         self.search_table.heading("dob", text="Date Of Birth", anchor=CENTER)
+        self.search_table.heading("sample", text="Sample", anchor=CENTER)
         self.search_table["show"] = "headings"
 
-        self.search_table.column("dept", width=100)
-        self.search_table.column("roll", width=100)
         self.search_table.column("reg", width=100)
+        self.search_table.column("dept", width=100)
+        self.search_table.column("session", width=100)
+        self.search_table.column("roll", width=100)
         self.search_table.column("student_name", width=100)
         self.search_table.column("phone", width=100)
         self.search_table.column("semester", width=100)
         self.search_table.column("email", width=100)
         self.search_table.column("dob", width=100)
+        self.search_table.column("sample", width=100)
 
         self.search_table.pack(fill=BOTH, expand=1)
+        self.search_table.bind("<ButtonRelease>",self.get_cursor)
+        self.fetch_data()
 
     #======================function declaration
     def add_data(self):
-        if self.var_dept.get()=="Select Department" or self.var_semester.get()==" Select Semester" or self.var_session.get()=="Select Year":
+        if self.var_dept.get()=="Select Department" or self.var_semester.get()==" Select Semester" or self.var_session.get()=="Select Session":
             return messagebox.showerror("Field Not Filled", "Please fill all fields before saving",parent=self.root)
         else:
             try:
                 conn = mysql.connector.connect(host="localhost",user="root",password="9504",database="face_recognition")
                 my_cursor = conn.cursor()
-                my_cursor.execute("insert into student values(%s,%s,%s,%s,%s,%s,%s,%s)",
-                              (
-                                  self.var_dept.get(),
-                                  self.var_roll.get(),
+                my_cursor.execute("insert into student values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(
+
                                   self.var_reg.get(),
+                                  self.var_dept.get(),
+                                  self.var_session.get(),
+                                  self.var_roll.get(),
                                   self.var_name.get(),
                                   self.var_phone.get(),
                                   self.var_semester.get(),
                                   self.var_email.get(),
-                                  self.var_dob.get()
-                              )
-                                  )
+                                  self.var_dob.get(),
+                                  self.var_radio_reg.get()
+                              ))
+                conn.commit()
+                self.fetch_data()
+                conn.close()
+                messagebox.showinfo("Success","Details have been addded",parent=self.root)
+
+            except Exception as es:
+                messagebox.showerror("Error",f"Due To:{str(es)}",parent=self.root)
+
+    #===================fetch data
+    def fetch_data(self):
+        conn = mysql.connector.connect(host="localhost",user="root",password="9504",database="face_recognition")
+        my_cursor = conn.cursor()
+        my_cursor.execute("select * from student")
+        data = my_cursor.fetchall()
+
+        if len(data) != 0:
+            self.search_table.delete(*self.search_table.get_children())
+            for i in data:
+                self.search_table.insert("",END,values=i)
+            conn.commit()
+        conn.close()
+
+    #=======================get cursor
+    def get_cursor(self,event=""):
+        cursor_focus = self.search_table.focus()
+        content = self.search_table.item(cursor_focus)
+        data = content["values"]
+
+        self.var_reg.set(data[0]),
+        self.var_dept.set(data[1]),
+        self.var_session.set(data[2])
+        self.var_roll.set(data[3]),
+        self.var_name.set(data[4]),
+        self.var_phone.set(data[5]),
+        self.var_semester.set(data[6]),
+        self.var_email.set(data[7]),
+        self.var_dob.set(data[8]),
+        self.var_radio_reg.set(data[9])
+
+    #=========================update function
+    def update_data(self):
+        if self.var_dept.get()=="Select Department" or self.var_semester.get()==" Select Semester" or self.var_session.get()=="Select Year":
+            return messagebox.showerror("Field Not Filled", "Please fill all fields before saving",parent=self.root)
+        else:
+            try:
+                Update = messagebox.askyesno("Update","Do you want to update",parent=self.root)
+                if Update>0:
+                    conn = mysql.connector.connect(host="localhost", user="root", password="9504", database="face_recognition")
+                    my_cursor = conn.cursor()
+                    my_cursor.execute("update student set Department=%s,Session=%s,Roll=%s,Name=%s,Phone=%s,Semester=%s,Email=%s,DateOfBirth=%s,Radiobtn=%s where Registration=%s",(
+
+                        self.var_dept.get(),
+                        self.var_session.get(),
+                        self.var_roll.get(),
+                        self.var_name.get(),
+                        self.var_phone.get(),
+                        self.var_semester.get(),
+                        self.var_email.get(),
+                        self.var_dob.get(),
+                        self.var_radio_reg.get(),
+                        self.var_reg.get()
+                    ))
+                else:
+                    if not Update:
+                        return
+                messagebox.showinfo("Success","Student Updated",parent=self.root)
+                conn.commit()
+                self.fetch_data()
+                conn.close()
+            except Exception as es:
+                messagebox.showerror("Error",f"Due To {str(es)}",parent=self.root)
+
+    #=====================delete function
+    def delete_data(self):
+        if self.var_reg.get() == "":
+            messagebox.showerror("Error","Registration Number Required",parent=self.root)
+        else:
+            try:
+                delete = messagebox.askyesno("Student Delete","Are you sure you want to delete the data?",parent=self.root)
+                if delete >0:
+                    conn = mysql.connector.connect(host="localhost", user="root", password="9504", database="face_recognition")
+                    my_cursor = conn.cursor()
+                    sql = "DELETE FROM student WHERE Registration=%s"
+                    val=(self.var_reg.get(),)
+                    my_cursor.execute(sql,val)
+                else:
+                    if not delete:
+                        return
+                conn.commit()
+                self.fetch_data()
+                conn.close()
+                messagebox.showinfo("Delete Success","Deleted Successfully",parent=self.root)
+            except Exception as es:
+                messagebox.showerror("Error",f"Due To {str(es)}",parent=self.root)
+
+    #=================reset function
+    def reset_data(self):
+        self.var_reg.set(""),
+        self.var_dept.set("Select Department"),
+        self.var_session.set("Select Session"),
+        self.var_roll.set(""),
+        self.var_name.set(""),
+        self.var_phone.set(""),
+        self.var_semester.set("Select Semester"),
+        self.var_email.set(""),
+        self.var_dob.set(""),
+        self.var_radio_reg.set("")
 
 
 if __name__ == "__main__":
