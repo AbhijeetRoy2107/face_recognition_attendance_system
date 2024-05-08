@@ -5,6 +5,8 @@ from PIL import Image,ImageTk
 from student import Student_Detail
 import os
 from train import Train
+from face_recognition import Face_Recognition
+
 
 class Face_Detection_Attendance_System():
     def __init__(self,root):
@@ -40,6 +42,10 @@ class Face_Detection_Attendance_System():
         b3 = Button(bg_img_label, text="Train Images", cursor="hand2",command=self.train_data)
         b3.place(x=400, y=200, width=220, height=70)
 
+        # Recognise Images Button
+        b4 = Button(bg_img_label, text="Recognise Images", cursor="hand2", command=self.face_data)
+        b4.place(x=400, y=400, width=220, height=70)
+
 
     #===================button functions=================
     def open_img(self):
@@ -52,6 +58,10 @@ class Face_Detection_Attendance_System():
     def train_data(self):
         self.new_window = Toplevel(self.root)
         self.app = Train(self.new_window)
+
+    def face_data(self):
+        self.new_window=Toplevel(self.root)
+        self.app=Face_Recognition(self.new_window)
 
 if __name__ == "__main__":
     root = Tk()
