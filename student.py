@@ -7,6 +7,11 @@ from PIL import Image,ImageTk
 import mysql.connector
 import cv2
 
+#=============credentials===============#
+my_sql_host = "localhost"
+my_sql_user = "root"
+my_sql_password = "9504"
+my_sql_database = "face_recognition"
 
 class Student_Detail():
     def __init__(self,root):
@@ -14,6 +19,8 @@ class Student_Detail():
         self.root.title("STUDENT DETAIL")
         self.root.geometry("1080x720")
         self.root.resizable(FALSE,FALSE)
+
+
 
         #============variables
         self.var_dept = StringVar()
@@ -420,7 +427,7 @@ class Student_Detail():
             return messagebox.showerror("Field Not Filled", "Please fill all fields before saving",parent=self.root)
         else:
             try:
-                conn = mysql.connector.connect(host="localhost",user="root",password="9504",database="face_recognition")
+                conn = mysql.connector.connect(host=my_sql_host,user=my_sql_user,password=my_sql_password,database=my_sql_database)
                 my_cursor = conn.cursor()
                 my_cursor.execute("insert into student values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(
 
@@ -445,7 +452,7 @@ class Student_Detail():
 
     #===================fetch data
     def fetch_data(self):
-        conn = mysql.connector.connect(host="localhost",user="root",password="9504",database="face_recognition")
+        conn = mysql.connector.connect(host=my_sql_host,user=my_sql_user,password=my_sql_password,database=my_sql_database)
         my_cursor = conn.cursor()
         my_cursor.execute("select * from student")
         data = my_cursor.fetchall()
@@ -482,7 +489,7 @@ class Student_Detail():
             try:
                 Update = messagebox.askyesno("Update","Do you want to update",parent=self.root)
                 if Update>0:
-                    conn = mysql.connector.connect(host="localhost", user="root", password="9504", database="face_recognition")
+                    conn = mysql.connector.connect(host=my_sql_host,user=my_sql_user,password=my_sql_password,database=my_sql_database)
                     my_cursor = conn.cursor()
                     my_cursor.execute("update student set Department=%s,Session=%s,Roll=%s,Name=%s,Phone=%s,Semester=%s,Email=%s,DateOfBirth=%s,Radiobtn=%s where Registration=%s",(
 
@@ -515,7 +522,7 @@ class Student_Detail():
             try:
                 delete = messagebox.askyesno("Student Delete","Are you sure you want to delete the data?",parent=self.root)
                 if delete >0:
-                    conn = mysql.connector.connect(host="localhost", user="root", password="9504", database="face_recognition")
+                    conn = mysql.connector.connect(host=my_sql_host,user=my_sql_user,password=my_sql_password,database=my_sql_database)
                     my_cursor = conn.cursor()
                     sql = "DELETE FROM student WHERE Registration=%s"
                     val=(self.var_reg.get(),)
@@ -549,8 +556,8 @@ class Student_Detail():
             return messagebox.showerror("Field Not Filled", "Please fill all fields before saving",parent=self.root)
         else:
             try:
-                conn = mysql.connector.connect(host="localhost", user="root", password="9504",
-                                               database="face_recognition")
+                conn = mysql.connector.connect(host=my_sql_host, user=my_sql_user, password=my_sql_password,
+                                               database=my_sql_database)
                 my_cursor = conn.cursor()
                 my_cursor.execute("select * from student")
                 myreult = my_cursor.fetchall()

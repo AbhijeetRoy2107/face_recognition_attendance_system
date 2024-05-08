@@ -9,6 +9,14 @@ import cv2
 import os
 import numpy as np
 from pygments.formatters import img
+from time import strftime
+from datetime import datetime
+
+#=============credentials===============#
+my_sql_host = "localhost"
+my_sql_user = "root"
+my_sql_password = "9504"
+my_sql_database = "face_recognition"
 
 
 class Face_Recognition():
@@ -33,6 +41,21 @@ class Face_Recognition():
                            command=self.face_recog
                            )
         face_recognise_btn.place(x=20, y=80, width=200, height=50)
+    #========================= Attendance ========================#
+    def mark_attendance(self,reg,n,r,d):
+        with open("attendance.csv","r+",newline="\n") as f:
+            myDataList = f.readlines()
+            name_list=[]
+            for line in myDataList:
+                entry = line.split((","))
+                name_list.append(entry[0])
+            if((reg not in name_list) and (n not in name_list) and (r not in name_list) and (d not in name_list)):
+                now = datetime.now()
+                d1=now.strftime("%d/%m/%Y")
+                dtString = now.strftime("%H:%M:%S")
+                f.writelines(f"\n{reg},{r},{n},{d},{dtString},{d1},Present")
+
+
 
     #======================== Face Recogniser ==================#
     def face_recog(self):
@@ -46,8 +69,7 @@ class Face_Recognition():
                 id,predict = clf.predict(gray_image[y:y+h,x:x+w])
                 confidence = int((100*(1-predict/300)))
 
-                conn = mysql.connector.connect(host="localhost", user="root", password="9504",
-                                               database="face_recognition")
+                conn = mysql.connector.connect(host=my_sql_host,user=my_sql_user,password=my_sql_password,database=my_sql_database)
                 my_cursor = conn.cursor()
 
                 my_cursor.execute("select Name from student where Registration="+str(id))
@@ -62,7 +84,16 @@ class Face_Recognition():
                 d = my_cursor.fetchone()
                 d = "+".join(d)
 
+                my_cursor.execute("select Registration from student where Registration=" + str(id))
+                reg = my_cursor.fetchone()
+                reg = "+".join(reg)
+
                 if confidence > 77:
+                    cv2.putText(img, f"Registration:{reg}",
+                                (x, y - 82),
+                                cv2.FONT_HERSHEY_COMPLEX,
+                                0.8, (255, 255, 255),
+                                3)
                     cv2.putText(img,f"Roll:{r}",
                                 (x,y-55),
                                  cv2.FONT_HERSHEY_COMPLEX,
@@ -78,6 +109,7 @@ class Face_Recognition():
                                  cv2.FONT_HERSHEY_COMPLEX,
                                 0.8, (255, 255, 255),
                                 3)
+                    self.mark_attendance(reg,n,r,d)
                 else:
                     cv2.rectangle(img,(x, y), (x + w, y + h), (0, 0, 255), 3)
                     cv2.putText(img, "Unknown Face",
